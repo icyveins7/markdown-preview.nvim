@@ -8,6 +8,7 @@ local M = {}
 
 M.config = {
 	port = 0, -- 0 = auto; effective port depends on instance_mode
+	host = "127.0.0.1", -- bind address; "0.0.0.0" for network access (e.g. over SSH)
 	open_browser = true,
 
 	-- nil = system default browser. String for app/binary name (e.g. "Firefox",
@@ -425,7 +426,8 @@ end
 -- so the first request includes it (the page then stashes it in
 -- sessionStorage for refreshes).
 local function browser_url(port)
-	local base = ("http://127.0.0.1:%d/"):format(port)
+	local display_host = (M.config.host == "0.0.0.0") and "127.0.0.1" or M.config.host
+	local base = ("http://%s:%d/"):format(display_host, port)
 	if M._token and M._token ~= "" then
 		return base .. "?t=" .. M._token
 	end
@@ -498,6 +500,7 @@ function M.start()
 		local index_path = vim.fs.joinpath(dir, M.config.index_name)
 		local ok, inst = pcall(ls_server.start, {
 			port = port,
+			host = M.config.host,
 			root = dir,
 			default_index = index_path,
 			headers = { ["Cache-Control"] = "no-cache" },
